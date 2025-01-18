@@ -1,14 +1,23 @@
 const userModel = require("../models/user.model");
 
-module.exports.register = async ({ email, password, firstname, lastname }) => {
-  if (!email || !password || !firstname || !lastname) {
-    throw new Error("All fields are required");
+const createUser = async ({ firstname, lastname, email, password }) => {
+  // Check if the email already exists
+  const existingUser = await userModel.findOne({ email });
+  if (existingUser) {
+    throw new Error("Email is already in use");
   }
-  const user = userModel.create({
+
+  // Create and save the new user
+  const user = new userModel({
+    fullname: { firstname, lastname },
     email,
-    password,
-    firstname,
-    lastname,
+    password, // Password will be hashed by the pre-save middleware
   });
+
+  await user.save();
   return user;
+};
+
+module.exports = {
+  createUser,
 };
